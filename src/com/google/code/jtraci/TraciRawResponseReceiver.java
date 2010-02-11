@@ -46,7 +46,7 @@ public class TraciRawResponseReceiver {
                 --msgSize;
             }
 
-            if (responseSize < 2) { // 2 for id & result
+            if (responseSize < 1) { // 1 for id
                 throw new IOException("TraCI content too small: " + responseSize);
             }
             if (responseSize > msgSize) {
@@ -54,12 +54,11 @@ public class TraciRawResponseReceiver {
             }
 
             byte id = dis.readByte();
-            byte result = dis.readByte();
-            byte[] content = new byte[responseSize-2];
+            byte[] content = new byte[responseSize-1];
             dis.readFully(content);
             msgSize -= responseSize;
 
-            rawResponsesQueue.add(new TraciRawResponse(id, result, content));
+            rawResponsesQueue.add(new TraciRawResponse(id, content));
         }
 
         if (msgSize != 0) {

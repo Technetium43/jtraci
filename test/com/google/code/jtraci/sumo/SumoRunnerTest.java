@@ -1,11 +1,11 @@
 package com.google.code.jtraci.sumo;
 
+import com.google.code.jtraci.TraciClient;
 import com.google.code.jtraci.TraciCommand;
 import com.google.code.jtraci.TraciCommandSender;
 import com.google.code.jtraci.TraciRawResponse;
 import com.google.code.jtraci.TraciRawResponseReceiver;
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
+import com.google.code.jtraci.resp.TraciStatusResponse;
 import java.io.File;
 import java.net.ConnectException;
 import java.net.InetAddress;
@@ -31,21 +31,20 @@ public class SumoRunnerTest {
             fail("Invalid SUMO path: " + sumoPath);
         }
 
-        if (!new File(networkPath).canRead()) {
-            fail("Invalid network file path: " + networkPath);
+        if (!new File(configPath).canRead()) {
+            fail("Invalid config file path: " + configPath);
         }
     }
 
     @Before
     public void setUp() {
         port = 8888;
-        sumo = new SumoRunner(sumoPath, networkPath, port);
+        sumo = new SumoRunner(sumoPath, configPath, port);
     }
 
     @After
     public void tearDown() {
         sumo.stop();
-        sumo = null;
     }
 
     @Test
@@ -97,17 +96,12 @@ public class SumoRunnerTest {
 
             sender.sendCommand(new TraciUnimplementedCommand());
             
-            TraciRawResponse resp = receiver.receiveRawResponse();
-            assertEquals(TraciUnimplementedCommand.ID, resp.getId());
-            assertEquals(1, resp.getResult());
-            
-            DataInputStream dis = new DataInputStream(
-                    new ByteArrayInputStream(resp.getContent()));
-            int descLen = dis.readInt();
-            byte[] rawDesc = new byte[descLen];
-            dis.readFully(rawDesc);
-            String desc = new String(rawDesc);
-            assertEquals("Command not implemented in sumo", desc);
+            TraciRawResponse rawResp = receiver.receiveRawResponse();
+            assertEquals(TraciUnimplementedCommand.ID, rawResp.getId());
+
+            TraciStatusResponse resp = new TraciStatusResponse(rawResp);
+            assertEquals(TraciStatusResponse.TraciStatusUnimplemented, resp.getResult());
+            assertEquals("Command not implemented in sumo", resp.getDescription());
         } finally {
             socket.close();
         }
@@ -127,8 +121,20 @@ public class SumoRunnerTest {
         sumo.stop();
     }
 
+    @Test
+    public void testTraciClientStep() throws Exception {
+        sumo.start();
+        TraciClient client = sumo.getClient();
+        assertEquals(0, client.getVehicleIds().size());
+        client.step(0);
+        assertEquals(1, client.getVehicleIds().size());
+        assertEquals("Rand0", client.getVehicleIds().get(0));
+        sumo.stop();
+    }
+
     private static final String sumoPath = "C:\\sumo\\sumo-winbin-0.11.1\\sumo.exe";
-    private static final String networkPath = "C:\\sumo\\maps\\adlershof.osm.net.xml";
+    private static final String configPath = "C:\\sumo\\maps\\potsdam.sumo.cfg";
+    
     private int port;
     private SumoRunner sumo;
 }
