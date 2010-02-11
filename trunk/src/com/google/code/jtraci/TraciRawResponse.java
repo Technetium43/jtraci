@@ -5,9 +5,8 @@ package com.google.code.jtraci;
  * @author DL
  */
 public class TraciRawResponse {
-    public TraciRawResponse(byte id, byte result, byte[] content) {
+    public TraciRawResponse(byte id, byte[] content) {
         this.id = id;
-        this.result = result;
         this.content = content;
     }
 
@@ -15,15 +14,10 @@ public class TraciRawResponse {
         return id;
     }
 
-    public byte getResult() {
-        return result;
-    }
-
     public byte[] getContent() {
         return content;
     }
 
     private final byte id;
-    private final byte result;
     private final byte[] content;
 }
