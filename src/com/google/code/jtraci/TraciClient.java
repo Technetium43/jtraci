@@ -1,5 +1,6 @@
 package com.google.code.jtraci;
 
+import com.google.code.jtraci.cmd.TraciChangeVehicleStateCmd;
 import com.google.code.jtraci.cmd.TraciGetVehicleVariableCmd;
 import com.google.code.jtraci.cmd.TraciStepCmd;
 import com.google.code.jtraci.io.TraciDataInputStream;
@@ -52,9 +53,9 @@ public class TraciClient {
         ByteArrayInputStream bais = new ByteArrayInputStream(response.getContent());
         TraciDataInputStream tdis = new TraciDataInputStream(bais);
         tdis.readByte(); // variable
-        tdis.readTraciString(); // vehicle id
+        tdis.readString(); // vehicle id
         tdis.readByte(); // return type
-        return tdis.readTraciStringList();
+        return tdis.readStringList();
     }
 
     public float getVehicleSpeed(String vehicleId) throws IOException {
@@ -70,7 +71,7 @@ public class TraciClient {
         ByteArrayInputStream bais = new ByteArrayInputStream(response.getContent());
         TraciDataInputStream tdis = new TraciDataInputStream(bais);
         tdis.readByte(); // variable
-        tdis.readTraciString(); // vehicle id
+        tdis.readString(); // vehicle id
         tdis.readByte(); // return type
         return tdis.readFloat();
     }
@@ -88,9 +89,17 @@ public class TraciClient {
         ByteArrayInputStream bais = new ByteArrayInputStream(response.getContent());
         TraciDataInputStream tdis = new TraciDataInputStream(bais);
         tdis.readByte(); // variable
-        tdis.readTraciString(); // vehicle id
+        tdis.readString(); // vehicle id
         tdis.readByte(); // return type
-        return tdis.readTraciString();
+        return tdis.readString();
+    }
+
+    public void slowDown (String vehicleId, float speed, float duration) throws IOException {
+        TraciCommand cmd = new TraciChangeVehicleStateCmd(vehicleId, speed, duration);
+        sender.sendCommand(cmd);
+
+        TraciRawResponse response = waitForResponse(TraciChangeVehicleStateCmd.ID);
+        verifyResponse(response);
     }
 
     /**

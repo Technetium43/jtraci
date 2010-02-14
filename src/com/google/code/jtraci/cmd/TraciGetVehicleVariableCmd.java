@@ -55,7 +55,7 @@ public class TraciGetVehicleVariableCmd implements TraciCommand {
             TraciDataOutputStream tdos = new TraciDataOutputStream(baos);
 
             tdos.write(vehicleVariable);
-            tdos.writeTraciString(vehicleId);
+            tdos.writeString(vehicleId);
             tdos.close();
             
             return baos.toByteArray();
