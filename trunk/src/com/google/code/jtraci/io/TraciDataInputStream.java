@@ -7,41 +7,93 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Extends java.io.DataInputStream with TraCI-specific deserializers.
+ * A TraCI data input stream lets an application read primitive TraCI data types
+ * from an underlying input stream in a machine-independent way.
+ * @see java.io.DataInputStream
+ * 
  * @author DL
  */
-public class TraciDataInputStream extends DataInputStream {
-
+public class TraciDataInputStream extends InputStream {
     /**
      * Creates a TraciDataInputStream that uses the specified underlying InputStream.
+     * @param in   the specified input stream.
      */
     public TraciDataInputStream(InputStream in) {
-        super(in);
+        dis = new DataInputStream(in);
     }
 
-    /**
-     * Reads a TraCI-serialized String.
-     * @return the String value read.
-     * @throws IOException if an I/O error occurs.
-     */
-    public String readTraciString() throws IOException {
+    @Override
+    public int read() throws IOException {
+        return dis.read();
+    }
+
+    @Override
+    public int available() throws IOException {
+        return dis.available();
+    }
+
+    @Override
+    public void close() throws IOException {
+        dis.close();
+    }
+
+    @Override
+    public synchronized void mark(int readlimit) {
+        dis.mark(readlimit);
+    }
+
+    @Override
+    public boolean markSupported() {
+        return dis.markSupported();
+    }
+
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException {
+        return dis.read(b, off, len);
+    }
+
+    @Override
+    public synchronized void reset() throws IOException {
+        dis.reset();
+    }
+
+    @Override
+    public long skip(long n) throws IOException {
+        return dis.skip(n);
+    }
+
+    public byte readByte() throws IOException {
+        return dis.readByte();
+    }
+
+    public int readInt() throws IOException {
+        return dis.readInt();
+    }
+
+    public float readFloat() throws IOException {
+        return dis.readFloat();
+    }
+
+    public double readDouble() throws IOException {
+        return dis.readDouble();
+    }
+
+    public String readString() throws IOException {
         int strLen = readInt();
         byte[] rawStr = new byte[strLen];
-        readFully(rawStr);
+        dis.readFully(rawStr);
         return new String(rawStr);
     }
 
-    /**
-     * Reads a TraCI-serialized StringList.
-     * @return the StringList value read.
-     * @throws IOException if an I/O error occurs.
-     */
-    public List<String> readTraciStringList() throws IOException {
-        List<String> stringList = new ArrayList<String>();
-        int numStrings = readInt();
+    public List<String> readStringList() throws IOException {
+        final int numStrings = readInt();
+        final List<String> stringList = new ArrayList<String>(numStrings);
+        
         for (int i = 0; i < numStrings; ++i) {
-            stringList.add(readTraciString());
+            stringList.add(readString());
         }
         return stringList;
     }
+
+    private final DataInputStream dis;
 }

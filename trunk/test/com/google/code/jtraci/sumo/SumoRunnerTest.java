@@ -132,6 +132,35 @@ public class SumoRunnerTest {
         sumo.stop();
     }
 
+    @Test
+    public void testTraciClientSlowDown() throws Exception {
+        sumo.start();
+        TraciClient client = sumo.getClient();
+
+        // get things going
+        client.step(10);
+        String vehicleId = client.getVehicleIds().get(0);
+        assertTrue(client.getVehicleSpeed(vehicleId) > 0);
+
+        // slow down, and allow changes to sink in
+        client.slowDown(vehicleId, 0, 1);
+        client.step(0);
+
+        for (int i = 0; i < 30; ++i) {
+            client.slowDown(vehicleId, 0, 1);
+            client.step(0);
+            assertEquals(0, client.getVehicleSpeed(vehicleId), Float.MIN_VALUE);
+        }
+
+        // allow changes to sink in
+        client.step(0);
+        client.step(0);
+        client.step(0);
+        
+        assertTrue(client.getVehicleSpeed(vehicleId) > 0);
+        sumo.stop();
+    }
+
     private static final String sumoPath = "C:\\sumo\\sumo-winbin-0.11.1\\sumo.exe";
     private static final String configPath = "C:\\sumo\\maps\\potsdam.sumo.cfg";
     

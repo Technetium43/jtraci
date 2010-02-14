@@ -22,7 +22,7 @@ public class TraciStatusResponse {
         TraciDataInputStream tdis = new TraciDataInputStream(bais);
 
         result = tdis.readByte();
-        description = tdis.readTraciString();
+        description = tdis.readString();
     }
 
     public byte getResult() {
